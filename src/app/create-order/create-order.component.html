@@ -1,1 +1,17 @@
-<p>create-order works!</p>
+<div class="container">
+
+    <form [formGroup]="formProduct" class="row mt-4">
+        <h4 class="mb-3">Create New Order</h4>
+        <div class="mb-3 col-6">
+            <label for="name" class="form-label">Nombre:</label>
+            <input type="text" class="form-control" id="name" formControlName="name">
+            @if(formProduct.get('name')?.hasError('required')){
+                <div class="invalid">Debe ingresar el nombre</div>
+            }
+        </div>
+        <div class="mb-3 col-6">
+            <label for="email" class="form-label">Email:</label>
+            <input type="email" class="form-control" id="email" formControlName="email">
+        </div>
+    </form>
+</div>
