@@ -1,17 +1,226 @@
-<div class="container">
+<div class="container mt-4">
+    <!-- Título del formulario -->
+    <h2 class="mb-4">Crear Nueva Orden</h2>
 
-    <form [formGroup]="formProduct" class="row mt-4">
-        <h4 class="mb-3">Create New Order</h4>
-        <div class="mb-3 col-6">
-            <label for="name" class="form-label">Nombre:</label>
-            <input type="text" class="form-control" id="name" formControlName="name">
-            @if(formProduct.get('name')?.hasError('required')){
-                <div class="invalid">Debe ingresar el nombre</div>
-            }
+    <!-- Formulario principal -->
+    <form [formGroup]="formOrder" (ngSubmit)="onSubmit()">
+        <!-- Sección de datos del cliente -->
+        <div class="row mb-4">
+            <!-- Campo Nombre -->
+            <div class="col-md-6 mb-3">
+                <label for="name" class="form-label" >Nombre:</label>
+                <input type="text" class="form-control" id="name"
+                formControlName="name"
+                [ngClass]="{
+                    'is-invalid': formOrder.get('name')?.invalid && (formOrder.get('name')?.dirty || formOrder.get('name')?.touched),
+                    'is-valid': formOrder.get('name')?.valid
+                  }"
+                >   
+                @if(formOrder.get('name'); as name){
+                    <div class="invalid-feedback">
+                        @if(name.getError('required')){
+                            El nombre es requerido
+                        }
+                        @if(name.getError('minlength')){
+                            El nombre debe tener al menos 3 caracteres
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Campo Email -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label" for="email">Email</label>
+                <input type="email" class="form-control" id="email"
+                formControlName="email"
+                [ngClass]="{
+                    'is-invalid': formOrder.get('email')?.invalid && (formOrder.get('email')?.dirty || formOrder.get('email')?.touched),
+                    'is-valid': formOrder.get('email')?.valid
+                  }"
+                >
+                @if (formOrder.get('email'); as email) {
+                    <div class="invalid-feedback">
+                        @if(email.getError('required')){
+                            El email es requerido
+                        }
+                        @if(email.getError('email')){
+                            El email no es válido
+                        }
+                        @if(email.getError('errorPedido')){
+                            El email ya ha sido registrado en un pedido anterior
+                        }
+                    </div>
+                }
+            </div>
         </div>
-        <div class="mb-3 col-6">
-            <label for="email" class="form-label">Email:</label>
-            <input type="email" class="form-control" id="email" formControlName="email">
+
+        <!-- Sección de productos -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Productos</h5>
+                    <button type="button" class="btn btn-primary" (click)="addProducts()">
+                        +
+                    </button>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <!-- Lista de productos -->
+                <div formArrayName="products">
+                
+                    @for(p of productsForm.controls; track $index){
+                        <div class="row mb-3" [formGroupName]="$index">
+                            <!-- Selector de producto -->
+                            <div class="col-md-3">
+                                <label class="form-label">Producto</label>
+                                <select class="form-select" formControlName="productId">
+                                    <option value="">Select Product</option>
+                                    @for(product of products; track $index ){
+                                        <option [value]="product.id">{{product.name}}</option>
+                                    }
+                                </select>
+                            </div>
+        
+                            <!-- Campo cantidad -->
+                            <div class="col-md-2">
+                                <label class="form-label">Cantidad</label>
+                                <input type="number" class="form-control" 
+                                formControlName="quantity"
+                                [ngClass]="{
+                                    'is-invalid': p.get('quantity')?.invalid && (p.get('quantity')?.dirty || p.get('quantity')?.touched),
+                                    'is-valid': p.get('quantity')?.valid
+                                  }"
+                                >
+                                <div class="invalid-feedback">      
+                                    @if(p.get('quantity')?.getError('required')){
+                                        La cantidad es requerida
+                                    }
+                                    @if(p.get('quantity')?.getError('min')){
+                                        La cantidad debe ser mayor a 0
+                                    }
+                                    @if(p.get('quantity')?.getError('max')){
+                                        La cantidad no debe ser mayor al stock.
+                                    }  
+                                </div>
+                            
+                            </div>
+        
+                            <!-- Campo precio (readonly) -->
+                            <div class="col-md-2">
+                                <label class="form-label">Precio</label>
+                                <input type="number" class="form-control"  readonly
+                                formControlName="price"
+                                >
+                            </div>
+        
+                            <!-- Campo stock (readonly) -->
+                            <div class="col-md-2">
+                                <label class="form-label">Stock</label>
+                                <input type="number" class="form-control"  readonly
+                                formControlName="stock"
+                                >
+                            </div>
+        
+                            <!-- Botón eliminar -->
+                            <div class="col-md-1 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger" (click)="removeProduct($index)">
+                                    X
+                                </button>
+                            </div>
+                        </div>
+                    }
+                    
+                    @if(formOrder.hasError('duplicateProduct', 'products')){ 
+                        <div class="text-danger"> No puedes seleccionar el mismo producto más de una vez</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de productos seleccionados -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Productos Seleccionados</h5>
+            </div>
+            <div class="card-body">
+                <ul>
+                    @for(product of productsSelected; track $index){
+                        <li>
+                            {{product.name}} - Cantidad: {{product.quantity}} - Precio: {{product.price}} - Stock:
+                           {{product.stock}}
+                        </li>
+                    }  
+                </ul>
+            </div>
+        </div>
+
+        <!-- Sección de total -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 offset-md-6">
+                        <!-- offset-md-6 desplaaz 6 columnas a la derecha -->
+                        <div class="d-flex justify-content-between">
+                            <strong>Total:</strong>
+                            <span>{{total | currency:'ARS':'symbol':'1.2-2'}}</span>
+                        </div>
+                        <div class="text-success mt-2">
+                            @if(hasDicount){
+                                10% descuento aplicado!
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <!-- Botones de acción -->
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary">
+               Crear orden
+            </button>
         </div>
     </form>
 </div>
+
+<!-- 
+Las clases de Bootstrap que usaste (d-flex, justify-content-between, y align-items-center) son parte de las utilidades de Flexbox en Bootstrap, que ayudan a alinear y distribuir elementos en una fila o columna.
+
+Vamos a ver cada una y sus alternativas:
+
+1. d-flex
+d-flex convierte un contenedor en un contenedor flex. Esto significa que los elementos dentro de él (los hijos) pueden alinearse y distribuirse usando las clases flex de Bootstrap.
+Alternativas:
+d-inline-flex: similar a d-flex, pero el contenedor permanece en línea (es decir, ocupa solo el espacio necesario). Esto es útil si quieres alinear elementos de manera horizontal sin que ocupen toda la línea.
+Sin d-flex: Sin esta clase, los elementos hijos seguirán el flujo normal de HTML, que usualmente es un flujo en bloque (uno bajo otro) o en línea (uno al lado de otro) sin la misma flexibilidad para alineación y distribución.
+2. justify-content-between
+Esta clase distribuye los elementos hijos de un contenedor flex (por ejemplo, los botones o textos) de manera que haya el mayor espacio posible entre ellos.
+
+Alternativas:
+justify-content-start: Alinea los elementos al inicio del contenedor.
+justify-content-end: Alinea los elementos al final del contenedor.
+justify-content-center: Centra los elementos horizontalmente dentro del contenedor.
+justify-content-around: Coloca espacio alrededor de cada elemento, lo que deja un poco de espacio en los extremos del contenedor.
+justify-content-evenly: Distribuye espacio igual entre los elementos y en los bordes del contenedor, de forma uniforme.
+3. align-items-center
+Esta clase alinea los elementos hijos verticalmente en el centro del contenedor. Esto es útil cuando quieres que los elementos se mantengan en la misma línea (horizontal) y alineados en el medio de su altura.
+
+Alternativas:
+align-items-start: Alinea los elementos en la parte superior del contenedor.
+align-items-end: Alinea los elementos en la parte inferior del contenedor.
+align-items-baseline: Alinea los elementos en función de su línea de base de texto.
+align-items-stretch: Estira los elementos para que llenen toda la altura del contenedor.
+Ejemplo Visual
+Imagina que tienes tres botones en un contenedor d-flex:
+
+d-flex justify-content-between align-items-center: Los botones se alinearán en una fila, con el primero al inicio, el último al final, y en el centro vertical del contenedor.
+
+d-flex justify-content-center align-items-start: Los botones se alinearán en el centro horizontalmente, pero estarán alineados en la parte superior del contenedor.
+
+d-inline-flex justify-content-around align-items-stretch: Los botones ocuparán solo el ancho necesario del contenedor y estarán distribuidos con espacio alrededor y estirados verticalmente para ocupar toda la altura.
+
+Estas utilidades te permiten hacer diseños de interfaz de usuario más dinámicos y responsivos sin necesidad de escribir mucho CSS adicional.
+
+-->

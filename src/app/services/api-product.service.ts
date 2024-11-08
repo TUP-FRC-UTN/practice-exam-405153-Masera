@@ -3,12 +3,11 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Product } from '../models/Product';
 import { Order } from '../models/Order';
-import { Order } from './../models/Order';
 
 @Injectable({
   providedIn: 'root'
 })
-export class ApiServiceService {
+export class ApiProductService {
 
   private readonly http = inject(HttpClient);
   private readonly url = 'http://localhost:3000';
